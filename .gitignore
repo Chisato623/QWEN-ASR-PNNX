@@ -1,0 +1,35 @@
+# Python caches and local environments
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+venv_gpu/
+
+# IDE and local agent metadata
+.vscode/
+.idea/
+.agents/
+.git-upload/
+Qwen3-ASR.git.backup/
+
+# Model weights and exported model artifacts
+whisper/
+ncnn_export/
+Qwen3-ASR-0.6B/*.safetensors
+Qwen3-ASR-0.6B/*.safetensors.*
+Qwen3-ASR-1.7B/*.safetensors
+Qwen3-ASR-1.7B/*.safetensors.*
+*.pt
+*.pth
+*.onnx
+*.bin
+
+# Runtime outputs
+outputs/
+logs/
+*.log
+
+# Build artifacts from vendored package sources
+Qwen3-ASR/build/
+Qwen3-ASR/*.egg-info/
+Qwen3-ASR/qwen_asr.egg-info/
