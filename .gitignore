@@ -10,6 +10,7 @@ venv_gpu/
 .idea/
 .agents/
 .git-upload/
+_codex_backup/
 Qwen3-ASR.git.backup/
 
 # Model weights and exported model artifacts

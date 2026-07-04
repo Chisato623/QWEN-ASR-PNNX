@@ -8,7 +8,8 @@ by 0.6B and 1.7B wrappers:
     audio_transformer [S, audio_dim]                 -> [S, audio_dim]
     audio_proj        [S, audio_dim]                 -> [S, text_dim]
     text_embed        [B, T] int64                   -> [B, T, text_dim]
-    text_decoder_*    hidden + rope + mask + kv      -> hidden + kv
+    text_decoder_prefill_* hidden + rope + mask      -> hidden + prompt kv
+    text_decoder_step_*    hidden + rope + mask + kv -> hidden + current kv
     text_norm         [B, T, text_dim]               -> [B, T, text_dim]
     lm_head           [B, T, text_dim]               -> [B, T, vocab]
 
@@ -140,11 +141,11 @@ class AudioTransformerForPnnx:
                     persistent=False,
                 )
 
-            def forward(self, hidden_states):
+            def forward(self, hidden_states, attention_mask):
                 position = self.positional_embedding.positional_embedding[: hidden_states.shape[0], :]
                 hidden_states = hidden_states + position.to(hidden_states.dtype)
                 for layer in self.layers:
-                    hidden_states = layer(hidden_states, self.cu_seqlens)[0]
+                    hidden_states = layer(hidden_states, self.cu_seqlens, attention_mask=attention_mask)[0]
                 return self.ln_post(hidden_states)
 
         return _Wrapper(audio_tower, seq_len).eval()
@@ -168,10 +169,10 @@ class AudioProjForPnnx:
         return _Wrapper(audio_tower).eval()
 
 
-class TextDecoderLayerForPnnx:
+class TextDecoderLayerBase:
     @staticmethod
-    def build(torch, nn, layer):
-        class _Wrapper(nn.Module):
+    def make_module(torch, nn, layer, mode: str):
+        class _BaseWrapper(nn.Module):
             def __init__(self, decoder_layer):
                 super().__init__()
                 self.input_layernorm = decoder_layer.input_layernorm
@@ -207,7 +208,7 @@ class TextDecoderLayerForPnnx:
                 )
                 return hidden_states.reshape(batch, self.num_heads, seq_len, head_dim)
 
-            def forward(self, hidden_states, cos, sin, attention_mask, cache_k, cache_v):
+            def project_qkv(self, hidden_states, cos, sin):
                 residual = hidden_states
                 hidden_states = self.input_layernorm(hidden_states)
 
@@ -230,6 +231,40 @@ class TextDecoderLayerForPnnx:
                 query_states = (query_states * cos) + (self.rotate_half(query_states) * sin)
                 key_states = (key_states * cos) + (self.rotate_half(key_states) * sin)
 
+                return residual, query_states, key_states, value_states
+
+            def finish_layer(self, residual, query_len, attn_output):
+                batch = attn_output.shape[0]
+                attn_output = attn_output.transpose(1, 2).contiguous().reshape(batch, query_len, -1)
+                hidden_states = residual + self.o_proj(attn_output)
+
+                residual = hidden_states
+                hidden_states = self.post_attention_layernorm(hidden_states)
+                hidden_states = residual + self.mlp(hidden_states)
+                return hidden_states
+
+        class _PrefillWrapper(_BaseWrapper):
+            def forward(self, hidden_states, cos, sin, attention_mask):
+                residual, query_states, key_states, value_states = self.project_qkv(hidden_states, cos, sin)
+                query_len = hidden_states.shape[1]
+
+                key_for_attn = self.repeat_kv(key_states)
+                value_for_attn = self.repeat_kv(value_states)
+
+                attn_weights = torch.matmul(query_states, key_for_attn.transpose(2, 3)) * self.scaling
+                attn_weights = attn_weights + attention_mask
+                attn_weights = torch.nn.functional.softmax(attn_weights, dim=-1, dtype=torch.float32).to(
+                    query_states.dtype
+                )
+                attn_output = torch.matmul(attn_weights, value_for_attn)
+                hidden_states = self.finish_layer(residual, query_len, attn_output)
+                return hidden_states, key_states, value_states
+
+        class _StepWrapper(_BaseWrapper):
+            def forward(self, hidden_states, cos, sin, attention_mask, cache_k, cache_v):
+                residual, query_states, key_states, value_states = self.project_qkv(hidden_states, cos, sin)
+                query_len = hidden_states.shape[1]
+
                 out_cache_k = torch.cat((cache_k, key_states), dim=2)
                 out_cache_v = torch.cat((cache_v, value_states), dim=2)
 
@@ -242,15 +277,17 @@ class TextDecoderLayerForPnnx:
                     query_states.dtype
                 )
                 attn_output = torch.matmul(attn_weights, value_for_attn)
-                attn_output = attn_output.transpose(1, 2).contiguous().reshape(batch, query_len, -1)
-                hidden_states = residual + self.o_proj(attn_output)
+                hidden_states = self.finish_layer(residual, query_len, attn_output)
 
-                residual = hidden_states
-                hidden_states = self.post_attention_layernorm(hidden_states)
-                hidden_states = residual + self.mlp(hidden_states)
-                return hidden_states, out_cache_k, out_cache_v
+                # C++ owns the long-lived KV cache. The step graph returns only
+                # the current token KV so runtime can write it to the real slot.
+                return hidden_states, key_states, value_states
 
-        return _Wrapper(layer).eval()
+        if mode == "prefill":
+            return _PrefillWrapper(layer).eval()
+        if mode == "step":
+            return _StepWrapper(layer).eval()
+        raise ValueError(f"unknown decoder export mode: {mode}")
 
 
 @dataclass(frozen=True)
@@ -360,7 +397,18 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--chunk-frames", type=int, default=100)
     parser.add_argument("--audio-seq-len", type=int, default=390)
     parser.add_argument("--text-seq-len", type=int, default=1)
-    parser.add_argument("--past-len", type=int, default=16)
+    parser.add_argument(
+        "--prefill-len",
+        type=int,
+        default=512,
+        help="Prompt/audio-token sequence length for decoder prefill graphs.",
+    )
+    parser.add_argument(
+        "--step-cache-len",
+        type=int,
+        default=512,
+        help="KV cache length consumed by decoder step graphs before appending the current token.",
+    )
     parser.add_argument(
         "--decoder-layers",
         default="all",
@@ -371,7 +419,7 @@ def parse_args() -> argparse.Namespace:
         default="all",
         help=(
             "Module groups to export, e.g. all, audio, text, audio_cnn,audio_transformer,"
-            "audio_proj,text_embed,text_norm,lm_head,text_decoder."
+            "audio_proj,text_embed,text_norm,lm_head,text_decoder,text_decoder_prefill,text_decoder_step."
         ),
     )
     parser.add_argument("--device", choices=["auto", "cpu", "cuda"], default="cpu")
@@ -418,10 +466,12 @@ def parse_module_groups(spec: str) -> set[str]:
             "text_embed",
             "text_norm",
             "lm_head",
-            "text_decoder",
+            "text_decoder_prefill",
+            "text_decoder_step",
         },
         "audio": {"audio_cnn", "audio_transformer", "audio_proj"},
-        "text": {"text_embed", "text_norm", "lm_head", "text_decoder"},
+        "text": {"text_embed", "text_norm", "lm_head", "text_decoder_prefill", "text_decoder_step"},
+        "text_decoder": {"text_decoder_prefill", "text_decoder_step"},
     }
     valid = aliases["all"]
 
@@ -518,7 +568,8 @@ def write_runtime_metadata(torch, model, args: argparse.Namespace, jobs: list[Ex
             "chunk_frames": args.chunk_frames,
             "audio_seq_len": args.audio_seq_len,
             "text_seq_len": args.text_seq_len,
-            "past_len": args.past_len,
+            "prefill_len": args.prefill_len,
+            "step_cache_len": args.step_cache_len,
         },
         "audio": {
             "num_mel_bins": int(audio_config.num_mel_bins),
@@ -552,6 +603,22 @@ def write_runtime_metadata(torch, model, args: argparse.Namespace, jobs: list[Ex
             "decode loop, stopping rules, sampling or greedy selection",
             "tokenizer encode/decode",
         ],
+        "decoder_contract": {
+            "prefill": (
+                "Run text_embed for the full prompt/audio-token sequence, scatter audio_proj outputs into "
+                "audio placeholder positions in hidden_states, then run text_decoder_prefill_layer_00..N. "
+                "The prefill graph has no cache input and returns prompt KV for C++ to store."
+            ),
+            "step": (
+                "Run one generated token at a time through text_decoder_step_layer_00..N. The graph consumes "
+                "the existing KV cache as attention context and returns only current-token KV; C++ must append "
+                "that KV to its long-lived cache."
+            ),
+            "warning": (
+                "Do not use the old past_len=16 style graph for real ASR. Long prompt plus audio tokens require "
+                "prefill over the full context before step decoding."
+            ),
+        },
     }
 
     manifest = {
@@ -608,10 +675,19 @@ def build_jobs(torch, nn, model, trace_dtype, args: argparse.Namespace) -> list[
             name=f"{BASE_NAME}_audio_transformer",
             module_group="audio_transformer",
             module=AudioTransformerForPnnx.build(torch, nn, audio_tower, args.audio_seq_len),
-            inputs=(torch.randn(args.audio_seq_len, audio_dim, dtype=trace_dtype),),
-            inputshape=f"[{args.audio_seq_len},{audio_dim}]",
-            input_names=("in0",),
-            input_shapes=(f"[{args.audio_seq_len},{audio_dim}]",),
+            inputs=(
+                torch.randn(args.audio_seq_len, audio_dim, dtype=trace_dtype),
+                torch.zeros(1, 1, args.audio_seq_len, args.audio_seq_len, dtype=trace_dtype),
+            ),
+            inputshape=(
+                f"[{args.audio_seq_len},{audio_dim}],"
+                f"[1,1,{args.audio_seq_len},{args.audio_seq_len}]"
+            ),
+            input_names=("in0", "in1"),
+            input_shapes=(
+                f"[{args.audio_seq_len},{audio_dim}]",
+                f"[1,1,{args.audio_seq_len},{args.audio_seq_len}]",
+            ),
             output_names=("out0",),
             output_shapes=(f"[{args.audio_seq_len},{audio_dim}]",),
         ),
@@ -661,43 +737,75 @@ def build_jobs(torch, nn, model, trace_dtype, args: argparse.Namespace) -> list[
         ),
     ]
 
-    total_len = args.past_len + args.text_seq_len
     for layer_idx in decoder_layer_indices:
         jobs.append(
             ExportJob(
-                name=f"{BASE_NAME}_text_decoder_layer_{layer_idx:02d}",
-                module_group="text_decoder",
-                module=TextDecoderLayerForPnnx.build(torch, nn, text_model.layers[layer_idx]),
+                name=f"{BASE_NAME}_text_decoder_prefill_layer_{layer_idx:02d}",
+                module_group="text_decoder_prefill",
+                module=TextDecoderLayerBase.make_module(torch, nn, text_model.layers[layer_idx], "prefill"),
+                inputs=(
+                    torch.randn(1, args.prefill_len, text_dim, dtype=trace_dtype),
+                    torch.randn(1, args.prefill_len, head_dim, dtype=trace_dtype),
+                    torch.randn(1, args.prefill_len, head_dim, dtype=trace_dtype),
+                    torch.zeros(1, 1, args.prefill_len, args.prefill_len, dtype=trace_dtype),
+                ),
+                inputshape=(
+                    f"[1,{args.prefill_len},{text_dim}],"
+                    f"[1,{args.prefill_len},{head_dim}],"
+                    f"[1,{args.prefill_len},{head_dim}],"
+                    f"[1,1,{args.prefill_len},{args.prefill_len}]"
+                ),
+                input_names=("hidden_states", "cos", "sin", "attention_mask"),
+                input_shapes=(
+                    f"[1,{args.prefill_len},{text_dim}]",
+                    f"[1,{args.prefill_len},{head_dim}]",
+                    f"[1,{args.prefill_len},{head_dim}]",
+                    f"[1,1,{args.prefill_len},{args.prefill_len}]",
+                ),
+                output_names=("hidden_states", "prompt_k", "prompt_v"),
+                output_shapes=(
+                    f"[1,{args.prefill_len},{text_dim}]",
+                    f"[1,{num_key_value_heads},{args.prefill_len},{head_dim}]",
+                    f"[1,{num_key_value_heads},{args.prefill_len},{head_dim}]",
+                ),
+            )
+        )
+        step_total_len = args.step_cache_len + args.text_seq_len
+        jobs.append(
+            ExportJob(
+                name=f"{BASE_NAME}_text_decoder_step_layer_{layer_idx:02d}",
+                module_group="text_decoder_step",
+                module=TextDecoderLayerBase.make_module(torch, nn, text_model.layers[layer_idx], "step"),
                 inputs=(
                     torch.randn(1, args.text_seq_len, text_dim, dtype=trace_dtype),
                     torch.randn(1, args.text_seq_len, head_dim, dtype=trace_dtype),
                     torch.randn(1, args.text_seq_len, head_dim, dtype=trace_dtype),
-                    torch.zeros(1, 1, args.text_seq_len, total_len, dtype=trace_dtype),
-                    torch.randn(1, num_key_value_heads, args.past_len, head_dim, dtype=trace_dtype),
-                    torch.randn(1, num_key_value_heads, args.past_len, head_dim, dtype=trace_dtype),
+                    torch.zeros(1, 1, args.text_seq_len, step_total_len, dtype=trace_dtype),
+                    torch.randn(1, num_key_value_heads, args.step_cache_len, head_dim, dtype=trace_dtype),
+                    torch.randn(1, num_key_value_heads, args.step_cache_len, head_dim, dtype=trace_dtype),
                 ),
                 inputshape=(
                     f"[1,{args.text_seq_len},{text_dim}],"
                     f"[1,{args.text_seq_len},{head_dim}],"
                     f"[1,{args.text_seq_len},{head_dim}],"
-                    f"[1,1,{args.text_seq_len},{total_len}],"
-                    f"[1,{num_key_value_heads},{args.past_len},{head_dim}],"
-                    f"[1,{num_key_value_heads},{args.past_len},{head_dim}]"
+                    f"[1,1,{args.text_seq_len},{step_total_len}],"
+                    f"[1,{num_key_value_heads},{args.step_cache_len},{head_dim}],"
+                    f"[1,{num_key_value_heads},{args.step_cache_len},{head_dim}]"
                 ),
                 input_names=("hidden_states", "cos", "sin", "attention_mask", "cache_k", "cache_v"),
                 input_shapes=(
                     f"[1,{args.text_seq_len},{text_dim}]",
                     f"[1,{args.text_seq_len},{head_dim}]",
                     f"[1,{args.text_seq_len},{head_dim}]",
-                    f"[1,1,{args.text_seq_len},{total_len}]",
-                    f"[1,{num_key_value_heads},{args.past_len},{head_dim}]",
-                    f"[1,{num_key_value_heads},{args.past_len},{head_dim}]",
+                    f"[1,1,{args.text_seq_len},{step_total_len}]",
+                    f"[1,{num_key_value_heads},{args.step_cache_len},{head_dim}]",
+                    f"[1,{num_key_value_heads},{args.step_cache_len},{head_dim}]",
                 ),
-                output_names=("hidden_states", "out_cache_k", "out_cache_v"),
+                output_names=("hidden_states", "current_k", "current_v"),
                 output_shapes=(
                     f"[1,{args.text_seq_len},{text_dim}]",
-                    f"[1,{num_key_value_heads},{total_len},{head_dim}]",
-                    f"[1,{num_key_value_heads},{total_len},{head_dim}]",
+                    f"[1,{num_key_value_heads},{args.text_seq_len},{head_dim}]",
+                    f"[1,{num_key_value_heads},{args.text_seq_len},{head_dim}]",
                 ),
             )
         )
@@ -713,8 +821,10 @@ def main() -> int:
         raise SystemExit("[ERROR] --audio-seq-len must be positive.")
     if args.text_seq_len <= 0:
         raise SystemExit("[ERROR] --text-seq-len must be positive.")
-    if args.past_len < 0:
-        raise SystemExit("[ERROR] --past-len must be non-negative.")
+    if args.prefill_len <= 0:
+        raise SystemExit("[ERROR] --prefill-len must be positive.")
+    if args.step_cache_len <= 0:
+        raise SystemExit("[ERROR] --step-cache-len must be positive.")
 
     pnnx = resolve_pnnx(args.pnnx)
     torch, nn, Qwen3ASRModel = import_runtime()

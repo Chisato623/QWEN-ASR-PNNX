@@ -1,0 +1,362 @@
+﻿[
+    {
+        "Name":  "qwen3_asr_0_6b_audio_cnn.ncnn.bin",
+        "Length":  22071376,
+        "LastWriteTimeUtc":  "\/Date(1783150289210)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_audio_cnn.ncnn.param",
+        "Length":  824,
+        "LastWriteTimeUtc":  "\/Date(1783150289210)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_audio_proj.ncnn.bin",
+        "Length":  3444496,
+        "LastWriteTimeUtc":  "\/Date(1783150320524)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_audio_proj.ncnn.param",
+        "Length":  336,
+        "LastWriteTimeUtc":  "\/Date(1783150320524)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_audio_transformer.ncnn.bin",
+        "Length":  348770656,
+        "LastWriteTimeUtc":  "\/Date(1783150316142)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_audio_transformer.ncnn.param",
+        "Length":  42961,
+        "LastWriteTimeUtc":  "\/Date(1783150316141)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_lm_head.ncnn.bin",
+        "Length":  311164932,
+        "LastWriteTimeUtc":  "\/Date(1783150352797)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_lm_head.ncnn.param",
+        "Length":  179,
+        "LastWriteTimeUtc":  "\/Date(1783150352797)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_decoder_layer_00.ncnn.bin",
+        "Length":  31466524,
+        "LastWriteTimeUtc":  "\/Date(1783150358145)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_decoder_layer_00.ncnn.param",
+        "Length":  5433,
+        "LastWriteTimeUtc":  "\/Date(1783150358144)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_decoder_layer_01.ncnn.bin",
+        "Length":  31466524,
+        "LastWriteTimeUtc":  "\/Date(1783150362945)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_decoder_layer_01.ncnn.param",
+        "Length":  5433,
+        "LastWriteTimeUtc":  "\/Date(1783150362945)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_decoder_layer_02.ncnn.bin",
+        "Length":  31466524,
+        "LastWriteTimeUtc":  "\/Date(1783150367601)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_decoder_layer_02.ncnn.param",
+        "Length":  5433,
+        "LastWriteTimeUtc":  "\/Date(1783150367601)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_decoder_layer_03.ncnn.bin",
+        "Length":  31466524,
+        "LastWriteTimeUtc":  "\/Date(1783150372295)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_decoder_layer_03.ncnn.param",
+        "Length":  5433,
+        "LastWriteTimeUtc":  "\/Date(1783150372295)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_decoder_layer_04.ncnn.bin",
+        "Length":  31466524,
+        "LastWriteTimeUtc":  "\/Date(1783150376885)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_decoder_layer_04.ncnn.param",
+        "Length":  5433,
+        "LastWriteTimeUtc":  "\/Date(1783150376885)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_decoder_layer_05.ncnn.bin",
+        "Length":  31466524,
+        "LastWriteTimeUtc":  "\/Date(1783150381511)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_decoder_layer_05.ncnn.param",
+        "Length":  5433,
+        "LastWriteTimeUtc":  "\/Date(1783150381511)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_decoder_layer_06.ncnn.bin",
+        "Length":  31466524,
+        "LastWriteTimeUtc":  "\/Date(1783150386089)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_decoder_layer_06.ncnn.param",
+        "Length":  5433,
+        "LastWriteTimeUtc":  "\/Date(1783150386089)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_decoder_layer_07.ncnn.bin",
+        "Length":  31466524,
+        "LastWriteTimeUtc":  "\/Date(1783150390600)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_decoder_layer_07.ncnn.param",
+        "Length":  5433,
+        "LastWriteTimeUtc":  "\/Date(1783150390599)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_decoder_layer_08.ncnn.bin",
+        "Length":  31466524,
+        "LastWriteTimeUtc":  "\/Date(1783150395431)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_decoder_layer_08.ncnn.param",
+        "Length":  5433,
+        "LastWriteTimeUtc":  "\/Date(1783150395430)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_decoder_layer_09.ncnn.bin",
+        "Length":  31466524,
+        "LastWriteTimeUtc":  "\/Date(1783150400583)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_decoder_layer_09.ncnn.param",
+        "Length":  5433,
+        "LastWriteTimeUtc":  "\/Date(1783150400582)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_decoder_layer_10.ncnn.bin",
+        "Length":  31466524,
+        "LastWriteTimeUtc":  "\/Date(1783150405937)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_decoder_layer_10.ncnn.param",
+        "Length":  5433,
+        "LastWriteTimeUtc":  "\/Date(1783150405937)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_decoder_layer_11.ncnn.bin",
+        "Length":  31466524,
+        "LastWriteTimeUtc":  "\/Date(1783150410961)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_decoder_layer_11.ncnn.param",
+        "Length":  5433,
+        "LastWriteTimeUtc":  "\/Date(1783150410961)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_decoder_layer_12.ncnn.bin",
+        "Length":  31466524,
+        "LastWriteTimeUtc":  "\/Date(1783150416026)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_decoder_layer_12.ncnn.param",
+        "Length":  5433,
+        "LastWriteTimeUtc":  "\/Date(1783150416026)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_decoder_layer_13.ncnn.bin",
+        "Length":  31466524,
+        "LastWriteTimeUtc":  "\/Date(1783150420990)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_decoder_layer_13.ncnn.param",
+        "Length":  5433,
+        "LastWriteTimeUtc":  "\/Date(1783150420990)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_decoder_layer_14.ncnn.bin",
+        "Length":  31466524,
+        "LastWriteTimeUtc":  "\/Date(1783150425826)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_decoder_layer_14.ncnn.param",
+        "Length":  5433,
+        "LastWriteTimeUtc":  "\/Date(1783150425826)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_decoder_layer_15.ncnn.bin",
+        "Length":  31466524,
+        "LastWriteTimeUtc":  "\/Date(1783150430762)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_decoder_layer_15.ncnn.param",
+        "Length":  5433,
+        "LastWriteTimeUtc":  "\/Date(1783150430761)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_decoder_layer_16.ncnn.bin",
+        "Length":  31466524,
+        "LastWriteTimeUtc":  "\/Date(1783150435850)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_decoder_layer_16.ncnn.param",
+        "Length":  5433,
+        "LastWriteTimeUtc":  "\/Date(1783150435850)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_decoder_layer_17.ncnn.bin",
+        "Length":  31466524,
+        "LastWriteTimeUtc":  "\/Date(1783150440720)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_decoder_layer_17.ncnn.param",
+        "Length":  5433,
+        "LastWriteTimeUtc":  "\/Date(1783150440719)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_decoder_layer_18.ncnn.bin",
+        "Length":  31466524,
+        "LastWriteTimeUtc":  "\/Date(1783150445544)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_decoder_layer_18.ncnn.param",
+        "Length":  5433,
+        "LastWriteTimeUtc":  "\/Date(1783150445544)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_decoder_layer_19.ncnn.bin",
+        "Length":  31466524,
+        "LastWriteTimeUtc":  "\/Date(1783150450230)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_decoder_layer_19.ncnn.param",
+        "Length":  5433,
+        "LastWriteTimeUtc":  "\/Date(1783150450229)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_decoder_layer_20.ncnn.bin",
+        "Length":  31466524,
+        "LastWriteTimeUtc":  "\/Date(1783150455026)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_decoder_layer_20.ncnn.param",
+        "Length":  5433,
+        "LastWriteTimeUtc":  "\/Date(1783150455026)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_decoder_layer_21.ncnn.bin",
+        "Length":  31466524,
+        "LastWriteTimeUtc":  "\/Date(1783150459699)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_decoder_layer_21.ncnn.param",
+        "Length":  5433,
+        "LastWriteTimeUtc":  "\/Date(1783150459699)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_decoder_layer_22.ncnn.bin",
+        "Length":  31466524,
+        "LastWriteTimeUtc":  "\/Date(1783150464746)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_decoder_layer_22.ncnn.param",
+        "Length":  5433,
+        "LastWriteTimeUtc":  "\/Date(1783150464746)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_decoder_layer_23.ncnn.bin",
+        "Length":  31466524,
+        "LastWriteTimeUtc":  "\/Date(1783150469593)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_decoder_layer_23.ncnn.param",
+        "Length":  5433,
+        "LastWriteTimeUtc":  "\/Date(1783150469593)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_decoder_layer_24.ncnn.bin",
+        "Length":  31466524,
+        "LastWriteTimeUtc":  "\/Date(1783150474326)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_decoder_layer_24.ncnn.param",
+        "Length":  5433,
+        "LastWriteTimeUtc":  "\/Date(1783150474326)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_decoder_layer_25.ncnn.bin",
+        "Length":  31466524,
+        "LastWriteTimeUtc":  "\/Date(1783150479195)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_decoder_layer_25.ncnn.param",
+        "Length":  5433,
+        "LastWriteTimeUtc":  "\/Date(1783150479195)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_decoder_layer_26.ncnn.bin",
+        "Length":  31466524,
+        "LastWriteTimeUtc":  "\/Date(1783150484037)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_decoder_layer_26.ncnn.param",
+        "Length":  5433,
+        "LastWriteTimeUtc":  "\/Date(1783150484037)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_decoder_layer_27.ncnn.bin",
+        "Length":  31466524,
+        "LastWriteTimeUtc":  "\/Date(1783150488939)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_decoder_layer_27.ncnn.param",
+        "Length":  5433,
+        "LastWriteTimeUtc":  "\/Date(1783150488939)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_decoder_prefill_layer_00.ncnn.bin",
+        "Length":  31466524,
+        "LastWriteTimeUtc":  "\/Date(1783156530794)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_decoder_prefill_layer_00.ncnn.param",
+        "Length":  5180,
+        "LastWriteTimeUtc":  "\/Date(1783156530794)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_decoder_step_layer_00.ncnn.bin",
+        "Length":  31466524,
+        "LastWriteTimeUtc":  "\/Date(1783156536096)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_decoder_step_layer_00.ncnn.param",
+        "Length":  5433,
+        "LastWriteTimeUtc":  "\/Date(1783156536096)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_embed.ncnn.bin",
+        "Length":  311164932,
+        "LastWriteTimeUtc":  "\/Date(1783150334665)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_embed.ncnn.param",
+        "Length":  165,
+        "LastWriteTimeUtc":  "\/Date(1783150334665)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_norm.ncnn.bin",
+        "Length":  4096,
+        "LastWriteTimeUtc":  "\/Date(1783150338574)\/"
+    },
+    {
+        "Name":  "qwen3_asr_0_6b_text_norm.ncnn.param",
+        "Length":  657,
+        "LastWriteTimeUtc":  "\/Date(1783150338574)\/"
+    }
+]
